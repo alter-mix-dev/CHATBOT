@@ -16,7 +16,7 @@ HF_TOKEN = os.getenv("HF_TOKEN", "")
 
 # Inicializamos el cliente oficial de Inferencia de Hugging Face
 # Si no hay token, funcionará con cuotas muy limitadas de prueba pública
-client = InferenceClient(provider="hf-inference", token=HF_TOKEN)
+client = InferenceClient(token=HF_TOKEN)
 
 
 @app.get("/webhook")
