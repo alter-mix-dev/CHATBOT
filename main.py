@@ -110,7 +110,7 @@ async def enviar_whatsapp(telefono_destino: str, texto_respuesta: str):
     """
     Despacha el mensaje de vuelta a WhatsApp a través de los servidores de Meta.
     """
-    url_api = f"https://graph.facebook.com{ID_TELEFONO_BUSINESS}/messages"
+    url_api = f"https://graph.facebook.com/{ID_TELEFONO_BUSINESS}/messages"
     
     headers = {
         "Authorization": f"Bearer {TOKEN_DE_ACCESO}",
