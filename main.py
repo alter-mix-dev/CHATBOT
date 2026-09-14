@@ -17,8 +17,8 @@ HF_TOKEN = os.getenv("HF_TOKEN", "")
 # Si no hay token, funcionará con cuotas muy limitadas de prueba pública
 client = InferenceClient(token=HF_TOKEN)
 
-
-@app.get("/webhook")
+@app.get("/")
+#@app.get("/webhook")
 async def verificar_webhook(request: Request):
     """
     PASO 1: Validación obligatoria del Webhook requerida por Meta.
@@ -35,8 +35,8 @@ async def verificar_webhook(request: Request):
         
     return Response(status_code=status.HTTP_403_FORBIDDEN)
 
-
-@app.post("/webhook")
+@app.post("/"
+#@app.post("/webhook")
 async def recibir_mensaje(request: Request):
     """
     PASO 2: Recepción y procesamiento de mensajes entrantes de WhatsApp.
