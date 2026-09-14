@@ -8,7 +8,7 @@ app = FastAPI()
 # 1. CONFIGURACIÓN DE TU CUENTA DE META
 TOKEN_DE_ACCESO = "EAAp1VOdWEY0BSXqvu8K3nZB3UfgL36JkZCnqxkn9iJWFlKiAh0t8ZCjdH0SlWQJXTN8bZA5lZAIwZCZCXC3uTNaNAS1XLOeB5WZCQ55KXruliHeWfzqu5dqeLwZCyZB3iQYnyMnnvhTmDwnjh6YSsE14pHmMAcY8OmY2RHUAlyiA5lmxeimVPBN3UVzdTZCfN14q6OOouHIDDQZCnC0rFFW6OsYSBi1pUY9tGMMEZCuIHy7dwhis1gZCPKOhpXleG6cZCdZAEZAoWTHnAm3mlGJChT4vAEXMXLAZDZD"
 TOKEN_VERIFICACION_WEBHOOK = "CHATBOT"
-ID_TELEFONO_BUSINESS = "1302255416307642"
+ID_TELEFONO_BUSINESS = "1069016372416229"
 
 # 2. CONFIGURACIÓN DE HUGGING FACE (Llama 3.1)
 # Extrae tu token de Hugging Face de las variables de entorno de Render
@@ -110,7 +110,8 @@ async def enviar_whatsapp(telefono_destino: str, texto_respuesta: str):
     """
     Despacha el mensaje de vuelta a WhatsApp a través de los servidores de Meta.
     """
-    url_api = f"https://graph.facebook.com/{ID_TELEFONO_BUSINESS}/messages"
+    url_api = f"https://graph.facebook.com/v25.0/1069016372416229/messages"
+    # ejemplo de url de meta https://graph.facebook.com/v25.0/1302255416307642/messages `
     
     headers = {
         "Authorization": f"Bearer {TOKEN_DE_ACCESO}",
