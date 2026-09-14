@@ -18,7 +18,7 @@ HF_TOKEN = os.getenv("HF_TOKEN", "")
 # Si no hay token, funcionará con cuotas muy limitadas de prueba pública
 client = InferenceClient(token=HF_TOKEN)
 
-@app.get("/")
+#@app.get("/")
 @app.get("/webhook")
 async def verificar_webhook(request: Request):
     """
@@ -36,7 +36,7 @@ async def verificar_webhook(request: Request):
         
     return Response(status_code=status.HTTP_403_FORBIDDEN)
 
-@app.post("/")
+#@app.post("/")
 @app.post("/webhook")
 async def recibir_mensaje(request: Request):
     """
