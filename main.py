@@ -1,29 +1,25 @@
 import os
 import httpx
 from fastapi import FastAPI, Request, Response, status
-from huggingface_hub import InferenceClient
+# Cambiamos a AsyncInferenceClient para no bloquear FastAPI
+from huggingface_hub import AsyncInferenceClient
 
 app = FastAPI()
 
 # --- CONFIGURACIÓN DE CREDENCIALES ---
-# NOTA: Si este token de prueba de 24 horas expira, cámbialo aquí o en las variables de entorno de Render.
-TOKEN_DE_ACCESO = os.getenv("META_ACCESS_TOKEN", "EAAp1VOdWEY0BSf5BlDgMHhBhmuPI5eLNy7ypttZA7mIRa1Q5UXXFk2Eqn5fRniqgQH3vdMd10MWMvUqYGLKZA7ZAAR17uLCfO4dr4DwFtdDYx0A3bnaR3PqJB1hr5tW5ZB6jULtyUhZChfoPXmUXel1OxcWqHo0x819rd2BMW0GGoAzZCe31Yr9JSuC6t8Ud68z8jAOPIqioOljRe0ywYow24kJhaII7xyZAnk26Bqg9QavrdykMZBBTqyCPaSVOdZBKEgW8Cjs96DJeh1uWFAFkM")
+TOKEN_DE_ACCESO = os.getenv("META_ACCESS_TOKEN", "TU_TOKEN_AQUÍ")
 TOKEN_VERIFICACION_WEBHOOK = "CHATBOT"
 ID_TELEFONO_BUSINESS = "1069016372416229"
-
-# --- CLIENTE DE INTELIGENCIA ARTIFICIAL (Llama 3.1) ---
+#Phone Number ID:1302255416307642
+# --- CLIENTE DE INTELIGENCIA ARTIFICIAL (Async) ---
 HF_TOKEN = os.getenv("HF_TOKEN", "")
-client = InferenceClient(token=HF_TOKEN)
+# Instanciamos el cliente asíncrono
+client = AsyncInferenceClient(token=HF_TOKEN)
 
 
 @app.get("/webhook")
 async def verificar_webhook(request: Request):
-    """
-    PASO 1: Validación obligatoria de Meta.
-    """
     params = request.query_params
-    
-    # Captura las variantes de parámetros que Meta envía en su petición
     mode = params.get("hub.mode") or params.get("hub_mode")
     token = params.get("hub.verify_token") or params.get("hub_verify_token")
     challenge = params.get("hub.challenge") or params.get("hub_challenge")
@@ -38,13 +34,8 @@ async def verificar_webhook(request: Request):
 
 @app.post("/webhook")
 async def recibir_mensaje(request: Request):
-    """
-    PASO 2: Recibir los mensajes de los usuarios y responderles.
-    """
     try:
         body = await request.json()
-
-        # Extraemos de forma segura el mensaje de la estructura JSON de Meta
         entries = body.get("entry", [])
         if entries:
             changes = entries[0].get("changes", [])
@@ -56,7 +47,6 @@ async def recibir_mensaje(request: Request):
                     mensaje = messages[0]
                     telefono_cliente = mensaje.get("from")
                     
-                    # Solo procesamos si el usuario envió un mensaje de texto
                     if mensaje.get("type") == "text":
                         texto_usuario = mensaje.get("text", {}).get("body", "")
                         print(f"💬 Mensaje de [{telefono_cliente}]: {texto_usuario}")
@@ -71,13 +61,12 @@ async def recibir_mensaje(request: Request):
     except Exception as e:
         print(f"❌ Error al procesar el mensaje: {str(e)}")
         
-    # Siempre respondemos 200 OK a Meta inmediatamente para que no reintente enviar el mismo mensaje
     return Response(content="EVENT_RECEIVED", status_code=status.HTTP_200_OK)
 
 
 async def consultar_llama(prompt_usuario: str) -> str:
     """
-    Envía el texto a Hugging Face para obtener una respuesta de Llama 3.1.
+    Envía el texto a Hugging Face usando el cliente asíncrono.
     """
     try:
         messages = [
@@ -85,7 +74,8 @@ async def consultar_llama(prompt_usuario: str) -> str:
             {"role": "user", "content": prompt_usuario}
         ]
         
-        completion = client.chat.completions.create(
+        # Ahora sí es un await real y eficiente
+        completion = await client.chat.completions.create(
             model="meta-llama/Llama-3.1-8B-Instruct",
             messages=messages,
             max_tokens=200,
@@ -99,10 +89,11 @@ async def consultar_llama(prompt_usuario: str) -> str:
 
 async def enviar_whatsapp(telefono_destino: str, texto_respuesta: str):
     """
-    Conexión asíncrona oficial con los servidores de Meta para mandar el mensaje.
+    Conexión corregida usando la URL oficial de Graph API v20.0
     """
-    url_api = f"https://facebook.com{ID_TELEFONO_BUSINESS}/messages"
-    
+    # CORRECCIÓN: URL corregida con graph.facebook.com y la versión v20.0
+    url_api = f"https://graph.facebook.com/v25.0/{ID_TELEFONO_BUSINESS}/messages"
+     #https://graph.facebook.com/v25.0/1302255416307642/messages `
     headers = {
         "Authorization": f"Bearer {TOKEN_DE_ACCESO}",
         "Content-Type": "application/json"
@@ -122,6 +113,7 @@ async def enviar_whatsapp(telefono_destino: str, texto_respuesta: str):
             if response.status_code == 200:
                 print(f"🚀 Mensaje enviado con éxito a {telefono_destino}")
             else:
-                print(f"❌ Meta rechazó el envío: {response.json()}")
+                # Esto te dirá exactamente qué error tiene Meta si vuelve a fallar
+                print(f"❌ Meta rechazó el envío (Código {response.status_code}): {response.text}")
         except Exception as e:
             print(f"❌ Error de red al conectar con Meta: {str(e)}")
